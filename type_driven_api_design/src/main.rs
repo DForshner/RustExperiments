@@ -23,7 +23,7 @@ fn main() {
     // progress_iter_messy(v.iter(), expensive_calculation);
     // progress_iter_clean(h.iter(), expensive_calculation);
 
-    // datastructure that represents iterator it's given
+    // Data structure that represents iterator it's given
     // for n in Progress::new(v.iter()) {
     //     expensive_calculation(n)
     // }
@@ -43,13 +43,13 @@ fn main() {
     //     expensive_calculation(n)
     // }
 
-    // Unbounded iterator causes error because with with_bound requires ExtactSizedIterator to call.
+    // Unbounded iterator causes error because with with_bound requires ExactSizeIterator to call.
     //for n in { 0.. }.progress_two().with_bound() {
     // for n in { 0.. }.progress_two() {
     //     expensive_calculation(&n)
     // }
 
-    // Cavate
+    // Huge Caveat!
     // The complier will catch errors but the error messages are complier errors so they
     // can be a lot harder for a user of your API to figure out than building a descriptive
     // runtime error.
@@ -67,7 +67,7 @@ fn main() {
     // for n in v
     //     .iter()
     //     .progress_three()
-    //     // Can't call with_delims because it works on ProgressThree sturcts with a bounded state
+    //     // Can't call with_delims because it works on ProgressThree structs with a bounded state
     //     .with_delims(brkts)
     // {
     //     expensive_calculation(n)
@@ -140,7 +140,7 @@ struct Progress<Iter> {
     i: usize,
 }
 
-// "Quantified" - For all types Iter impliement Progress of Iter
+// "Quantified" - For all types Iter implement Progress of Iter
 impl<Iter> Progress<Iter> {
     pub fn new(iter: Iter) -> Self {
         Progress { iter, i: 0 }
@@ -174,7 +174,7 @@ trait ProgressIteratorExt: Sized {
 //     }
 // }
 
-// Improved version requires Iter to be a iteratable type.
+// Improved version requires Iter to be a iterable type.
 // Prevents 0.progress() and blah".progress() above
 impl<Iter> ProgressIteratorExt for Iter
 where
@@ -319,7 +319,7 @@ where
             bound: self.iter.len(),
             delims: ('[', ']'),
         };
-        // Return distict structure/new type
+        // Return distinct structure/new type
         ProgressThree {
             i: self.i,
             iter: self.iter,
