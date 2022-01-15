@@ -1,0 +1,23 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(lldb) Launch",
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "program": "${workspaceFolder}/target/debug/bevy_pixel_cube_square",
+            "windows": {
+                "program": "${workspaceFolder}/target/debug/bevy_pixel_cube_square.exe"
+            },
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "sourceLanguages": [
+                "rust"
+            ],
+        },
+    ]
+}
