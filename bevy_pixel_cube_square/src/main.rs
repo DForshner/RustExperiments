@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 const PIXEL_SIZE: f32 = 1.0;
-const PITCH: f32 = 0.2;
+const PITCH: f32 = 0.3;
 
 fn main() {
     App::new()
@@ -20,15 +20,17 @@ fn setup_scene(
 ) {
     commands.spawn_bundle(PointLightBundle {
         point_light: PointLight {
-            intensity: 1500.0,
+            intensity: 5000000.0,
+            range: 1000.0,
+            radius: 75.0,
             shadows_enabled: true,
             ..Default::default()
         },
-        transform: Transform::from_xyz(4.0, 8.0, 4.0),
+        transform: Transform::from_xyz(0.0, 100.0, 0.0),
         ..Default::default()
     });
     commands.spawn_bundle(PerspectiveCameraBundle {
-        transform: Transform::from_xyz(0.0, 20.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
+        transform: Transform::from_xyz(0.0, 200.0, 1.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..Default::default()
     });
 
@@ -51,31 +53,64 @@ fn setup_scene(
     });
 }
 
+const UPPER_LEFT_X: f32 = 3.0 * (PIXEL_SIZE + PITCH);
+const UPPER_LEFT_Z: f32 = 3.0 * (PIXEL_SIZE + PITCH);
+
 // O X X X
 // X X X X
 // X X X X
 // X X X X
 // Draw square with origin at top left
-fn draw_square(origin_x: usize, origin_y: usize, size: usize) -> Vec<Transform> {
-    let mut transforms: Vec<Transform> = Vec::new();
-    let max_x = origin_x + size;
-    let max_y = origin_y + size;
-    for x in origin_x..max_x {
-        for y in origin_y..max_y {
-            let x_final = if x > 0 {
-                x as f32 * (PIXEL_SIZE + PITCH)
+fn build_square_of_pixels_transforms(
+    start_col: usize,
+    start_row: usize,
+    size: usize,
+) -> Vec<Transform> {
+    let mut pixel_transforms: Vec<Transform> = Vec::new();
+    let max_col = start_col + size;
+    let max_row = start_row + size;
+    // Draw square
+    for col in start_col..max_col {
+        for row in start_row..max_row {
+            let x = if col == 0 {
+                0.0
             } else {
-                x as f32
+                (col as f32) * (PIXEL_SIZE + PITCH) - UPPER_LEFT_X
             };
-            let y_final = if y > 0 {
-                y as f32 * (PIXEL_SIZE + PITCH)
+            let z = if row == 0 {
+                0.0
             } else {
-                y as f32
+                (row as f32) * (PIXEL_SIZE + PITCH) - UPPER_LEFT_Z
             };
-            transforms.push(Transform::from_xyz(x_final, 0.0, y_final));
+            pixel_transforms.push(Transform::from_xyz(x, 0.0, z));
         }
     }
-    transforms
+    pixel_transforms
+}
+
+fn build_horizontal_line_of_pixels_transforms(
+    start_col: usize,
+    start_row: usize,
+    size: usize,
+) -> Vec<Transform> {
+    let mut pixel_transforms: Vec<Transform> = Vec::new();
+    let max_col = start_col + size;
+    for col in start_col..max_col {
+        let x = if col == 0 {
+            0.0
+        } else {
+            (col as f32) * (PIXEL_SIZE + PITCH) - UPPER_LEFT_X
+        };
+        let z = (start_row as f32) * (PIXEL_SIZE + PITCH) - UPPER_LEFT_Z;
+        pixel_transforms.push(Transform::from_xyz(x, 0.0, z));
+    }
+    pixel_transforms
+}
+
+#[test]
+fn what() {
+    assert!(true);
+    assert_eq!(4, 4);
 }
 
 fn setup_drawing(
@@ -83,6 +118,7 @@ fn setup_drawing(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    let pixel_mesh = meshes.add(Mesh::from(shape::Cube { size: PIXEL_SIZE }));
     let pixel_material = materials.add(StandardMaterial {
         base_color: Color::WHITE,
         metallic: 0.5,
@@ -90,13 +126,46 @@ fn setup_drawing(
         ..Default::default()
     });
 
-    // Draw
-    let vec = draw_square(0, 0, 3);
-    for t in vec {
+    let _parent_material = materials.add(StandardMaterial {
+        base_color: Color::GRAY,
+        metallic: 0.1,
+        perceptual_roughness: 0.1,
+        ..Default::default()
+    });
+
+    // let parent_mesh_size = size as f32 * (PIXEL_SIZE + PITCH);
+    // let parent_mesh = meshes.add(Mesh::from(shape::Cube {
+    //     size: parent_mesh_size,
+    // }));
+
+    // let parent_x = (col as f32 * (PIXEL_SIZE + PITCH)) + (parent_mesh_size * 0.5);
+    // let parent_y = (row as f32 * (PIXEL_SIZE + PITCH)) + (parent_mesh_size * 0.5);
+    // let parent_transform = Transform::from_xyz(parent_x, -parent_mesh_size + PIXEL_SIZE, parent_y);
+    // commands.spawn_bundle(PbrBundle {
+    //     mesh: parent_mesh,
+    //     material: parent_material,
+    //     transform: parent_transform,
+    //     ..Default::default()
+    // });
+    let horizontal_line_transforms = build_horizontal_line_of_pixels_transforms(0, 10, 80);
+    for transform in horizontal_line_transforms {
         commands.spawn_bundle(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Cube { size: PIXEL_SIZE })),
+            mesh: pixel_mesh.clone(),
             material: pixel_material.clone(),
-            transform: t,
+            transform,
+            ..Default::default()
+        });
+    }
+
+    let col = 1;
+    let row = 1;
+    let size = 4;
+    let pixel_transforms = build_square_of_pixels_transforms(col, row, size);
+    for transform in pixel_transforms {
+        commands.spawn_bundle(PbrBundle {
+            mesh: pixel_mesh.clone(),
+            material: pixel_material.clone(),
+            transform,
             ..Default::default()
         });
     }
